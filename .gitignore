@@ -1,0 +1,6 @@
+.venv
+venv
+.env
+
+*.mp3
+*.wav
