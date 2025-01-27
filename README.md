@@ -89,6 +89,44 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Platform-Specific Setup
+
+### Windows
+1. Install FFmpeg:
+   - Option 1: Download from [FFmpeg official site](https://ffmpeg.org/download.html)
+   - Option 2: Using Chocolatey (if installed):
+     ```
+     choco install ffmpeg
+     ```
+   - Add FFmpeg to your system PATH
+
+2. Install Python dependencies:
+   ```
+   python -m venv venv
+   .\venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+### Linux (Debian/Ubuntu)
+1. Install system dependencies:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install ffmpeg python3-venv python3-dev portaudio19-dev
+   ```
+
+2. Install Python dependencies:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+3. Add your user to the audio group:
+   ```bash
+   sudo usermod -a -G audio $USER
+   ```
+   Note: Log out and back in for this to take effect.
+
 ## Usage
 
 1. Run the application:

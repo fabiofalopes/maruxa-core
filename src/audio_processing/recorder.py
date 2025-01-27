@@ -42,9 +42,10 @@ class AudioRecorder:
             p.terminate()
 
     def record_until_q(self, filename, input_device_index=None):
-        p = None
-        stream = None
         try:
+            # Ensure output directory exists
+            os.makedirs(self.output_directory, exist_ok=True)
+            
             p = pyaudio.PyAudio()
             
             # If no specific device is specified, try to find any working input device
@@ -70,7 +71,6 @@ class AudioRecorder:
             print("Press Ctrl+C to stop recording")
             frames = []
 
-            # Add error recovery for overflow
             while True:
                 try:
                     data = stream.read(self.chunk, exception_on_overflow=False)
@@ -79,33 +79,31 @@ class AudioRecorder:
                     break
                 except Exception as e:
                     print(f"Warning: {e}")
-                    # Don't break on overflow, just continue
                     continue
 
             print("* done recording")
             
-            if stream is not None and stream.is_active():
+            # Ensure proper cleanup
+            try:
                 stream.stop_stream()
                 stream.close()
-            if p is not None:
-                p.terminate()
-
+            except:
+                pass
             try:
-                # Ensure the directory exists
-                full_path = os.path.abspath(filename)
-                directory = os.path.dirname(full_path)
-                print(f"Saving to directory: {directory}")
+                p.terminate()
+            except:
+                pass
+
+            # Save the recording
+            try:
+                full_path = os.path.join(os.path.abspath(self.output_directory), filename)
+                print(f"Saving to directory: {os.path.dirname(full_path)}")
                 print(f"Full file path: {full_path}")
                 
-                os.makedirs(directory, exist_ok=True)
-
-                # Save the recorded data as a WAV file
-                print("Opening file for writing...")
                 wf = wave.open(full_path, 'wb')
                 wf.setnchannels(self.channels)
                 wf.setsampwidth(p.get_sample_size(self.format))
                 wf.setframerate(self.rate)
-                print("Writing audio data...")
                 wf.writeframes(b''.join(frames))
                 wf.close()
                 print(f"Successfully saved recording to {full_path}")
@@ -115,18 +113,7 @@ class AudioRecorder:
                 raise
 
         except Exception as e:
-            print(f"An error occurred during recording: {str(e)}")
-            if stream is not None and stream.is_active():
-                try:
-                    stream.stop_stream()
-                    stream.close()
-                except:
-                    pass
-            if p is not None:
-                try:
-                    p.terminate()
-                except:
-                    pass
+            print(f"An error occurred: {str(e)}")
             raise
 
     def record(self, duration, filename, input_device_index=None):
