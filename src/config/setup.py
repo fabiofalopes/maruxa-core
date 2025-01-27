@@ -2,12 +2,11 @@ import os
 import sys
 import pyaudio
 import json
+from config.config import CONFIG_FILE_PATH, RECORDINGS_DIR
 
 # Add the project root to the Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
-
-from config.config import CONFIG_FILE_PATH
 
 def list_input_devices():
     p = pyaudio.PyAudio()

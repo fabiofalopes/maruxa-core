@@ -6,3 +6,5 @@ venv
 *.wav
 
 __pycache__
+.recordings/
+.voice_outputs/

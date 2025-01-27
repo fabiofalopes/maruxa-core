@@ -2,10 +2,11 @@ import os
 from audio_processing.recorder import AudioRecorder
 from audio_processing.preprocess import preprocess_audio
 from stt.groq_whisper import GroqWhisperAPI
+from config.config import RECORDINGS_DIR
 
 def main():
     # Initialize components with absolute paths
-    recordings_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'recordings')
+    recordings_dir = RECORDINGS_DIR
     recorder = AudioRecorder(output_directory=recordings_dir)
     transcriber = GroqWhisperAPI()
     

@@ -31,3 +31,12 @@ def load_config():
 
 # Load the audio configuration
 AUDIO_CONFIG = load_config()
+
+# Define paths for recordings and voice outputs
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Go up one more level
+RECORDINGS_DIR = os.path.join(PROJECT_ROOT, '.recordings')
+VOICE_OUTPUTS_DIR = os.path.join(PROJECT_ROOT, '.voice_outputs')
+
+# Ensure directories exist
+os.makedirs(RECORDINGS_DIR, exist_ok=True)
+os.makedirs(VOICE_OUTPUTS_DIR, exist_ok=True)

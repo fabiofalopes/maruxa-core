@@ -14,7 +14,7 @@ class GroqWhisperAPI:
         "whisper-large-v3-turbo"
     ]
 
-    SELECTED_MODEL = models[0]
+    SELECTED_MODEL = models[2]
 
     def __init__(self):
         self.selected_model = self.models[0]

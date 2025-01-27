@@ -3,6 +3,7 @@ import os
 import platform
 import subprocess
 from pathlib import Path
+from config.config import VOICE_OUTPUTS_DIR
 
 def check_ffmpeg():
     """Check if FFmpeg is available in the system."""

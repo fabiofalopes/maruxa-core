@@ -2,10 +2,10 @@ import pyaudio
 import wave
 import os
 import threading
-from config.config import AUDIO_CONFIG
+from config.config import AUDIO_CONFIG, RECORDINGS_DIR
 
 class AudioRecorder:
-    def __init__(self, output_directory='recordings'):
+    def __init__(self, output_directory=RECORDINGS_DIR):
         self.chunk = 1024
         self.format = pyaudio.paInt16
         self.channels = 1
