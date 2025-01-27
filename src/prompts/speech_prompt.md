@@ -1,0 +1,3 @@
+Converte o texto seguinte em discurso natural e fluído, adaptado ao português europeu. Mantém a informação essencial, mas torna-a mais conversacional, acessível e agradável de ouvir, com construções típicas de Portugal. Remove qualquer formatação ou elementos, como markdown ou citações, que não soem naturais quando falados.
+
+Assegura que o discurso seja claro, otimizado para síntese de voz e consistente com o tom que um português em Portugal utilizaria.
