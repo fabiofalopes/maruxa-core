@@ -24,7 +24,7 @@ class VoiceAssistantWorkflow:
         self.system_prompt = self._load_prompt("system_prompt.md")
         self.speech_prompt = self._load_prompt("speech_prompt.md")
 
-    def process_voice_input(self) -> Optional[str]:
+    def process_voice_input(self):
         try:
             # Recording and transcription
             self.console.print("[bold green]Recording...[/bold green] (Press Ctrl+C to stop)")
@@ -33,54 +33,49 @@ class VoiceAssistantWorkflow:
             text = self.stt.transcribe_audio(audio_path)
             self.console.print(f"\n[blue]Transcribed:[/blue] {text}")
             
-            # Check if notes directory is empty
-            if not os.path.exists("notes") or not os.listdir("notes"):
-                response = "Não encontrei nenhuma nota para consultar. Por favor, adicione alguns documentos à pasta 'notes' primeiro."
-                self.console.print(f"\n[yellow]{response}[/yellow]")
-                return response
-            
             # Query and LLM processing
             with Progress() as progress:
                 task = progress.add_task("[yellow]Processing query...", total=None)
                 try:
-                    query_engine = self.index_manager.get_query_engine(self.llm_wrapper.get_llm())
+                    # Get LLM instance once
+                    llm = self.llm_wrapper.get_llm()
+                    
+                    # First get relevant quotes
+                    quotes = self.index_manager.get_document_quotes(text, llm)
+                    if quotes:
+                        self.console.print("\n[cyan]Retrieved context:[/cyan]")
+                        for i, quote in enumerate(quotes, 1):
+                            self.console.print(f"\n[dim]{i}. From {quote['file']} (relevance: {quote['score']:.2f}):[/dim]")
+                            self.console.print(f"[italic]{quote['text']}[/italic]")
+                    
+                    # Get response using query engine
+                    query_engine = self.index_manager.get_query_engine(llm)
                     if query_engine is None:
                         raise ValueError("No index available")
                     rag_response = query_engine.query(text)
                     progress.update(task, completed=True)
+                    
+                    # Process response
+                    response_text = str(rag_response)
+                    self.console.print(f"\n[green]Response:[/green] {response_text}")
+                    
+                    # Convert to speech
+                    audio_file = create_audio(response_text)
+                    if audio_file:
+                        progress.stop()  # Stop the progress display before playing audio
+                        self.audio_controller.play_audio(audio_file)
+                        
                 except Exception as e:
                     progress.update(task, completed=True)
+                    self.console.print(f"[red]Error processing query: {str(e)}[/red]")
                     raise ValueError("Não foi possível processar a consulta. Verifique se existem documentos na pasta 'notes'.")
-
-            # Process with LLM and show response
-            messages = [
-                ChatMessage(role="system", content=self.system_prompt),
-                ChatMessage(role="user", content=f"User input: {text}\nQuery result: {str(rag_response)}")
-            ]
-            llm_response = self.llm_wrapper.chat(messages)
-            
-            self.console.print("\n[green]Assistant Response:[/green]")
-            self.console.print(f"[white]{llm_response}[/white]\n")
-            
-            # Convert to speech-optimized format
-            speech_messages = [
-                ChatMessage(role="system", content=self.speech_prompt),
-                ChatMessage(role="user", content=llm_response)
-            ]
-            speech_text = self.llm_wrapper.chat(speech_messages)
-            
-            # Generate and play audio
-            self.console.print("[dim]Generating audio response...[/dim]")
-            audio_file = create_audio(speech_text)
-            if audio_file:
-                self.console.print("\n[bold]Playing Audio Response[/bold]")
-                self.audio_controller.play_audio(audio_file)
-            
-            return speech_text
-            
+                    
+        except KeyboardInterrupt:
+            self.console.print("\n[yellow]Recording cancelled[/yellow]")
         except Exception as e:
-            self.console.print(f"[red]Error in workflow: {str(e)}[/red]")
-            return None
+            self.console.print(f"\n[red]Error in workflow: {str(e)}[/red]")
+            
+        self.console.print("\n[dim]Press Enter for new interaction, or 'q' to quit[/dim]")
 
     def _load_prompt(self, filename: str) -> str:
         prompt_path = os.path.join("src", "prompts", filename)
