@@ -3,7 +3,6 @@ import wave
 import os
 import threading
 from config.config import AUDIO_CONFIG
-import keyboard
 
 class AudioRecorder:
     def __init__(self, output_directory='recordings'):
@@ -43,6 +42,8 @@ class AudioRecorder:
             p.terminate()
 
     def record_until_q(self, filename, input_device_index=None):
+        p = None
+        stream = None
         try:
             p = pyaudio.PyAudio()
             
@@ -66,54 +67,66 @@ class AudioRecorder:
                           frames_per_buffer=self.chunk)
 
             print("* recording")
+            print("Press Ctrl+C to stop recording")
             frames = []
 
-            try:
-                while True:
-                    if keyboard.is_pressed('q'):
-                        break
-                    data = stream.read(self.chunk)
+            # Add error recovery for overflow
+            while True:
+                try:
+                    data = stream.read(self.chunk, exception_on_overflow=False)
                     frames.append(data)
-            except KeyboardInterrupt:
-                pass
-            finally:
-                print("* done recording")
+                except KeyboardInterrupt:
+                    break
+                except Exception as e:
+                    print(f"Warning: {e}")
+                    # Don't break on overflow, just continue
+                    continue
+
+            print("* done recording")
+            
+            if stream is not None and stream.is_active():
                 stream.stop_stream()
                 stream.close()
+            if p is not None:
                 p.terminate()
 
-                try:
-                    # Ensure the directory exists
-                    full_path = os.path.abspath(filename)
-                    directory = os.path.dirname(full_path)
-                    print(f"Saving to directory: {directory}")
-                    print(f"Full file path: {full_path}")
-                    
-                    os.makedirs(directory, exist_ok=True)
+            try:
+                # Ensure the directory exists
+                full_path = os.path.abspath(filename)
+                directory = os.path.dirname(full_path)
+                print(f"Saving to directory: {directory}")
+                print(f"Full file path: {full_path}")
+                
+                os.makedirs(directory, exist_ok=True)
 
-                    # Save the recorded data as a WAV file
-                    print("Opening file for writing...")
-                    wf = wave.open(full_path, 'wb')
-                    wf.setnchannels(self.channels)
-                    wf.setsampwidth(p.get_sample_size(self.format))
-                    wf.setframerate(self.rate)
-                    print("Writing audio data...")
-                    wf.writeframes(b''.join(frames))
-                    wf.close()
-                    print(f"Successfully saved recording to {full_path}")
-                    return full_path
-                except Exception as e:
-                    print(f"Error saving the recording: {str(e)}")
-                    print(f"Error type: {type(e)}")
-                    import traceback
-                    print(f"Stack trace: {traceback.format_exc()}")
-                    raise
+                # Save the recorded data as a WAV file
+                print("Opening file for writing...")
+                wf = wave.open(full_path, 'wb')
+                wf.setnchannels(self.channels)
+                wf.setsampwidth(p.get_sample_size(self.format))
+                wf.setframerate(self.rate)
+                print("Writing audio data...")
+                wf.writeframes(b''.join(frames))
+                wf.close()
+                print(f"Successfully saved recording to {full_path}")
+                return full_path
+            except Exception as e:
+                print(f"Error saving the recording: {str(e)}")
+                raise
 
         except Exception as e:
             print(f"An error occurred during recording: {str(e)}")
-            print(f"Error type: {type(e)}")
-            import traceback
-            print(f"Stack trace: {traceback.format_exc()}")
+            if stream is not None and stream.is_active():
+                try:
+                    stream.stop_stream()
+                    stream.close()
+                except:
+                    pass
+            if p is not None:
+                try:
+                    p.terminate()
+                except:
+                    pass
             raise
 
     def record(self, duration, filename, input_device_index=None):

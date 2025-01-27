@@ -1,11 +1,22 @@
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 import json
 #import litellm
 
 #litellm.set_verbose(True)
 
+# Debug prints
+print(f"Looking for .env file at: {find_dotenv()}")
+print(f"Current working directory: {os.getcwd()}")
+
 load_dotenv()
+
+# Debug prints for GROQ_API_KEY
+#print("\nEnvironment Variables Debug:")
+#print(f"GROQ_API_KEY present: {'GROQ_API_KEY' in os.environ}")
+#print(f"GROQ_API_KEY length: {len(os.getenv('GROQ_API_KEY', ''))} characters")
+#print(f"GROQ_API_KEY value: {os.getenv('GROQ_API_KEY', '')}")  # Be careful with this in production!
+#print(f"All .env files in current directory: {[f for f in os.listdir('.') if '.env' in f]}")
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 

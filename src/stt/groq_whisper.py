@@ -20,8 +20,9 @@ class GroqWhisperAPI:
         self.selected_model = self.models[0]
         if not GROQ_API_KEY:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
-        os.environ['GROQ_API_KEY'] = GROQ_API_KEY
-        self.client = Groq()
+        
+        # Initialize the client directly with the API key
+        self.client = Groq(api_key=GROQ_API_KEY)
         #self.analyzer = TextAnalyzer()
 
     def transcribe_audio(
