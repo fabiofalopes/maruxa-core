@@ -3,7 +3,7 @@ import soundfile as sf
 import threading
 import time
 import platform
-import keyboard
+from pynput import keyboard
 from rich.console import Console
 from rich.progress import Progress
 from typing import Optional
@@ -19,6 +19,10 @@ class AudioController:
         self.total_frames = 0
         self.data = None
         self.samplerate = None
+        self.paused = False
+        self.should_stop = False
+        self.listener = keyboard.Listener(on_press=self.on_press)
+        self.listener.start()
 
     def play_audio(self, audio_file: str):
         """Start playing audio with controls"""
@@ -75,19 +79,11 @@ class AudioController:
 
                 def check_input():
                     while self.is_playing:
-                        if keyboard.is_pressed('p'):  # Pause/Resume
-                            self.is_paused = not self.is_paused
+                        if self.paused:
                             time.sleep(0.2)  # Debounce
-                        elif keyboard.is_pressed('s'):  # Stop
+                        elif self.should_stop:
                             self.is_playing = False
                             break
-                        elif keyboard.is_pressed('q'):  # Quit
-                            self.is_playing = False
-                            break
-                        elif keyboard.is_pressed('right'):  # Skip forward 1s
-                            self._skip_frames(int(self.samplerate))
-                        elif keyboard.is_pressed('left'):  # Skip backward 1s
-                            self._skip_frames(-int(self.samplerate))
                         time.sleep(0.1)
 
                 # Start input checking in a separate thread
@@ -123,6 +119,27 @@ class AudioController:
         """Stop playback"""
         self.is_playing = False
         self.console.print("[dim]⏹ Stopped[/dim]")
+
+    def on_press(self, key):
+        try:
+            if hasattr(key, 'char'):  # Regular keys
+                if key.char == 'p':
+                    self.paused = not self.paused
+                elif key.char == 's':
+                    self.should_stop = True
+                elif key.char == 'q':
+                    self.should_stop = True
+                    return False  # Stop listener
+            elif key == keyboard.Key.left:
+                self._skip_frames(-int(self.samplerate))
+            elif key == keyboard.Key.right:
+                self._skip_frames(int(self.samplerate))
+        except AttributeError:
+            pass
+
+    def __del__(self):
+        if hasattr(self, 'listener'):
+            self.listener.stop()
 
 # Create a singleton instance
 audio_controller = AudioController()
