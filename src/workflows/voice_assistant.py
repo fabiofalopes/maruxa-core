@@ -73,7 +73,8 @@ class VoiceAssistantWorkflow:
     def _load_prompt(self, filename: str) -> str:
         prompt_path = os.path.join("src", "prompts", filename)
         try:
-            with open(prompt_path, "r") as f:
+            # Explicitly specify UTF-8 encoding
+            with open(prompt_path, "r", encoding='utf-8') as f:
                 return f.read()
         except FileNotFoundError:
             self.console.print(f"[yellow]Warning: {filename} not found[/yellow]")
