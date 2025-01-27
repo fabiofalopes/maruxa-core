@@ -52,7 +52,6 @@ class IndexManager:
             return self.index
         except Exception as e:
             raise Exception(f"Error creating index: {str(e)}")
-
     def get_query_engine(self, llm=None):
         """Get a query engine from the index."""
         if self.index is None:
