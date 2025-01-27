@@ -145,3 +145,53 @@ python src/main.py
 - The application requires proper audio input device configuration on your system
 - FFmpeg must be available in your system PATH
 - Audio files are temporarily stored in the 'recordings' directory
+
+---
+
+
+# Notes
+
+## Codebase Cleanup
+
+To maintain a clean and efficient codebase, we've removed and reviewed several unused or redundant files. Below are the details of the cleanup process:
+
+### Removed Files
+
+- **`src/llm/rag_engine.py`**
+  - **Reason:** This file was not referenced anywhere in the project and has been safely deleted.
+
+### Review files
+
+- **Test Scripts**
+  - **`src/test_stt.py`**
+  - **`src/test_tts.py`**
+  - **Reason:** These were previously used for testing speech-to-text and text-to-speech functionalities. If you plan to perform future tests, consider keeping them; otherwise, they've been removed to streamline the codebase.
+
+### Reviewed for Potential Removal
+
+- **`src/config/setup.py`**
+  - **Action Needed:** Verify if this setup script is invoked elsewhere (e.g., during installation or initialization). If it's no longer required, consider removing it or integrating its functionality into the main setup process.
+
+- **`src/platform_setup.py`**
+  - **Action Needed:** This script checks for FFmpeg dependencies but isn't currently called from `main.py`. Decide whether to integrate its checks into the main application flow or remove it if redundant.
+
+### Dependency Files
+
+- **`requirements-extra.txt`**
+- **`requirements-cuda.txt`**
+  - **Action Needed:** Ensure that the dependencies listed are still relevant to the project's current state. Remove any packages that are no longer needed to reduce bloat and potential security vulnerabilities.
+
+### Recommendations
+
+- **Comprehensive Code Audit:**
+  - Use tools like [Vulture](https://github.com/jendrikseipp/vulture) to scan the codebase for any additional dead code or unused imports.
+  
+- **Documentation Update:**
+  - Reflect the current project structure and dependencies in the `README.md` and other relevant documentation files to provide accurate guidance for future contributors and users.
+
+- **Version Control Best Practices:**
+  - Always commit changes before making deletions. This ensures that you can restore any files if needed in the future.
+
+By adhering to these cleanup steps, we aim to enhance the maintainability and performance of the project.
+
+---
