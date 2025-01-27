@@ -11,5 +11,6 @@ __pycache__
 .index_store/
 
 notes/
+notes.bak/
 
 .ignore # Cenas para ignorar
