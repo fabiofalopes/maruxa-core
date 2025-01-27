@@ -13,7 +13,8 @@ nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.4.127
 
 # ML/AI dependencies
-torch==2.5.1
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==2.5.1+cu121
 transformers==4.48.1
 sentence-transformers==3.4.0
 scikit-learn==1.6.1

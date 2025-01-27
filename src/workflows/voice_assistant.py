@@ -33,12 +33,24 @@ class VoiceAssistantWorkflow:
             text = self.stt.transcribe_audio(audio_path)
             self.console.print(f"\n[blue]Transcribed:[/blue] {text}")
             
+            # Check if notes directory is empty
+            if not os.path.exists("notes") or not os.listdir("notes"):
+                response = "Não encontrei nenhuma nota para consultar. Por favor, adicione alguns documentos à pasta 'notes' primeiro."
+                self.console.print(f"\n[yellow]{response}[/yellow]")
+                return response
+            
             # Query and LLM processing
             with Progress() as progress:
                 task = progress.add_task("[yellow]Processing query...", total=None)
-                query_engine = self.index_manager.get_query_engine(self.llm_wrapper.get_llm())
-                rag_response = query_engine.query(text)
-                progress.update(task, completed=True)
+                try:
+                    query_engine = self.index_manager.get_query_engine(self.llm_wrapper.get_llm())
+                    if query_engine is None:
+                        raise ValueError("No index available")
+                    rag_response = query_engine.query(text)
+                    progress.update(task, completed=True)
+                except Exception as e:
+                    progress.update(task, completed=True)
+                    raise ValueError("Não foi possível processar a consulta. Verifique se existem documentos na pasta 'notes'.")
 
             # Process with LLM and show response
             messages = [
