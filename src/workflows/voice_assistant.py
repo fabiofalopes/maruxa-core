@@ -30,15 +30,45 @@ class VoiceAssistantWorkflow:
         self.system_prompt = self._load_prompt("system_prompt_lus.md")
         self.speech_prompt = self._load_prompt("speech_prompt.md")
         
+
+        '''
+        Change the LLM instances between Groq and Local
+        '''
+        
         # Create specialized LLM instances (Groq LLM)
-        #self.thinking_llm = GroqLLMWrapper.create_thinking_llm(self.system_prompt)
-        #self.speech_llm = GroqLLMWrapper.create_speech_llm(self.speech_prompt)
+        
+        ## Load prompts
+        ## ------------ 
+        ###self.system_prompt = self._load_prompt("system_prompt.md")
+        ###self.speech_prompt = self._load_prompt("speech_prompt.md")
+        ## ------------ 
+        ## Create LLM instances (Groq LLM)
+        ## ------------ 
+        ###self.thinking_llm = GroqLLMWrapper.create_thinking_llm(self.system_prompt)
+        ###self.speech_llm = GroqLLMWrapper.create_speech_llm(self.speech_prompt)
+        ## ------------ 
 
         # Create specialized LLM instances (Local LLM)
+        
+        ## Load prompts
+        ## ------------ 
+        self.system_prompt = self._load_prompt("system_prompt_lus.md")
+        self.speech_prompt = self._load_prompt("speech_prompt.md")
+        ## ------------ 
+        ## Create LLM instances (Local LLM)
+        ## ------------ 
         self.thinking_llm = LocalLLMWrapper.create_thinking_llm(self.system_prompt)
         self.speech_llm = LocalLLMWrapper.create_speech_llm(self.speech_prompt)
+        ## ------------ 
+
+        '''
+        Above - Change the LLM instances between Groq and Local 
+        '''
+
+
 
     def process_voice_input(self):
+
         try:
             # Recording and transcription
             self.console.print("[bold green]Recording...[/bold green] (Press Ctrl+C to stop)")
