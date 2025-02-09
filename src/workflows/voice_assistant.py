@@ -4,12 +4,15 @@ from rich.progress import Progress
 from llama_index.core.llms import ChatMessage
 from stt.groq_whisper import GroqWhisperAPI
 from tts.edge_tts_integration import create_audio
-from llm.groq_llm import GroqLLMWrapper
+from llm.groq_llm import GroqLLMWrapper  # Groq LLM via API
+from llm.local_llm import LocalLLMWrapper  # Local LLM
 from utils.index_manager import IndexManager
 from audio_processing.recorder import AudioRecorder
 from playback.playback_module import audio_controller
 from config.config import RECORDINGS_DIR
 import os
+
+
 
 class VoiceAssistantWorkflow:
     def __init__(self, index_manager: IndexManager):
@@ -23,12 +26,17 @@ class VoiceAssistantWorkflow:
         self.conversation_history = []
         
         # Load prompts
-        self.system_prompt = self._load_prompt("system_prompt.md")
+        #self.system_prompt = self._load_prompt("system_prompt.md")
+        self.system_prompt = self._load_prompt("system_prompt_lus.md")
         self.speech_prompt = self._load_prompt("speech_prompt.md")
         
-        # Create specialized LLM instances
-        self.thinking_llm = GroqLLMWrapper.create_thinking_llm(self.system_prompt)
-        self.speech_llm = GroqLLMWrapper.create_speech_llm(self.speech_prompt)
+        # Create specialized LLM instances (Groq LLM)
+        #self.thinking_llm = GroqLLMWrapper.create_thinking_llm(self.system_prompt)
+        #self.speech_llm = GroqLLMWrapper.create_speech_llm(self.speech_prompt)
+
+        # Create specialized LLM instances (Local LLM)
+        self.thinking_llm = LocalLLMWrapper.create_thinking_llm(self.system_prompt)
+        self.speech_llm = LocalLLMWrapper.create_speech_llm(self.speech_prompt)
 
     def process_voice_input(self):
         try:

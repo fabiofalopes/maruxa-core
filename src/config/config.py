@@ -40,3 +40,6 @@ VOICE_OUTPUTS_DIR = os.path.join(PROJECT_ROOT, '.voice_outputs')
 # Ensure directories exist
 os.makedirs(RECORDINGS_DIR, exist_ok=True)
 os.makedirs(VOICE_OUTPUTS_DIR, exist_ok=True)
+
+LOCAL_LLM_BASE_URL = "http://192.168.108.80:4000/v1"
+LOCAL_LLM_API_KEY = "sk-1234"
