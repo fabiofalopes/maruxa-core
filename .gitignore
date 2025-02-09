@@ -12,5 +12,6 @@ __pycache__
 
 notes/
 notes.bak/
+notes.exp/
 
 .ignore # Cenas para ignorar
