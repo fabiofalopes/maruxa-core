@@ -15,3 +15,5 @@ notes.bak/
 notes.exp/
 
 .ignore # Cenas para ignorar
+
+audio_config.json

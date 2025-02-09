@@ -16,13 +16,19 @@ class VoiceAssistantWorkflow:
         self.console = Console()
         self.recorder = AudioRecorder(output_directory=RECORDINGS_DIR)
         self.stt = GroqWhisperAPI()
-        self.llm_wrapper = GroqLLMWrapper()
         self.index_manager = index_manager
         self.audio_controller = audio_controller
         
-        # Load system prompts
+        # Add conversation history
+        self.conversation_history = []
+        
+        # Load prompts
         self.system_prompt = self._load_prompt("system_prompt.md")
         self.speech_prompt = self._load_prompt("speech_prompt.md")
+        
+        # Create specialized LLM instances
+        self.thinking_llm = GroqLLMWrapper.create_thinking_llm(self.system_prompt)
+        self.speech_llm = GroqLLMWrapper.create_speech_llm(self.speech_prompt)
 
     def process_voice_input(self):
         try:
@@ -37,32 +43,47 @@ class VoiceAssistantWorkflow:
             with Progress() as progress:
                 task = progress.add_task("[yellow]Processing query...", total=None)
                 try:
-                    # Get LLM instance once
-                    llm = self.llm_wrapper.get_llm()
+                    # Add user input to history
+                    self.conversation_history.append(
+                        ChatMessage(role="user", content=text)
+                    )
                     
-                    # First get relevant quotes
-                    quotes = self.index_manager.get_document_quotes(text, llm)
-                    if quotes:
-                        self.console.print("\n[cyan]Retrieved context:[/cyan]")
-                        for i, quote in enumerate(quotes, 1):
-                            self.console.print(f"\n[dim]{i}. From {quote['file']} (relevance: {quote['score']:.2f}):[/dim]")
-                            self.console.print(f"[italic]{quote['text']}[/italic]")
-                    
-                    # Get response using query engine
-                    query_engine = self.index_manager.get_query_engine(llm)
+                    # First stage: Get relevant documents and detailed thinking with context
+                    query_engine = self.index_manager.get_query_engine(self.thinking_llm.get_llm())
                     if query_engine is None:
                         raise ValueError("No index available")
-                    rag_response = query_engine.query(text)
+                    
+                    # Get and display relevant documents concisely
+                    quotes = self.index_manager.get_document_quotes(text, self.thinking_llm.get_llm(), num_quotes=2)
+                    if quotes:
+                        self.console.print("\n[dim]Referencing documents:[/dim]")
+                        for quote in quotes:
+                            self.console.print(f"[dim]• {quote['file']} (relevance: {quote['score']:.2f})[/dim]")
+                    
+                    detailed_response = query_engine.query(text)
+                    
+                    # Second stage: Convert to natural speech
+                    speech_messages = [
+                        *self.conversation_history[-4:],  # Include last 2 exchanges (4 messages)
+                        ChatMessage(role="user", content=f"Convert this response to natural speech: {detailed_response}")
+                    ]
+                    natural_response = self.speech_llm.chat(speech_messages)
+                    
+                    # Add assistant's response to history
+                    self.conversation_history.append(
+                        ChatMessage(role="assistant", content=natural_response)
+                    )
+                    
                     progress.update(task, completed=True)
                     
-                    # Process response
-                    response_text = str(rag_response)
-                    self.console.print(f"\n[green]Response:[/green] {response_text}")
+                    # Display both responses for debugging
+                    self.console.print(f"\n[cyan]Detailed Response:[/cyan] {detailed_response}")
+                    self.console.print(f"\n[green]Natural Speech Response:[/green] {natural_response}")
                     
-                    # Convert to speech
-                    audio_file = create_audio(response_text)
+                    # Convert to speech using the natural response
+                    audio_file = create_audio(natural_response)
                     if audio_file:
-                        progress.stop()  # Stop the progress display before playing audio
+                        progress.stop()
                         self.audio_controller.play_audio(audio_file)
                         
                 except Exception as e:
