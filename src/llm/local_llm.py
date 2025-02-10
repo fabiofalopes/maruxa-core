@@ -61,3 +61,12 @@ class LocalLLMWrapper:
             temperature=0.3,
             system_prompt=speech_prompt,
         )
+
+    @classmethod
+    def create_markdown_filter_llm(cls, filter_prompt: str) -> 'LocalLLMWrapper':
+        """Creates an LLM instance optimized for markdown filtering"""
+        return cls(
+            model_name="DeepSeek-R1-Distill-Llama-8B-Q6_K",
+            temperature=0.1,
+            system_prompt=filter_prompt,
+        )
