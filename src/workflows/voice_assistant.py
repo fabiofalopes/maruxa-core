@@ -12,8 +12,6 @@ from playback.playback_module import audio_controller
 from config.config import RECORDINGS_DIR
 import os
 
-
-
 class VoiceAssistantWorkflow:
     def __init__(self, index_manager: IndexManager):
         self.console = Console()
@@ -28,6 +26,7 @@ class VoiceAssistantWorkflow:
         # Load prompts
         #self.system_prompt = self._load_prompt("system_prompt.md")
         self.system_prompt = self._load_prompt("system_prompt_lus.md")
+
         self.speech_prompt = self._load_prompt("speech_prompt.md")
         
 
@@ -36,29 +35,15 @@ class VoiceAssistantWorkflow:
         '''
         
         # Create specialized LLM instances (Groq LLM)
-        
-        ## Load prompts
         ## ------------ 
-        ###self.system_prompt = self._load_prompt("system_prompt.md")
-        ###self.speech_prompt = self._load_prompt("speech_prompt.md")
-        ## ------------ 
-        ## Create LLM instances (Groq LLM)
-        ## ------------ 
-        ###self.thinking_llm = GroqLLMWrapper.create_thinking_llm(self.system_prompt)
-        ###self.speech_llm = GroqLLMWrapper.create_speech_llm(self.speech_prompt)
+        self.thinking_llm = GroqLLMWrapper.create_thinking_llm(self.system_prompt)
+        self.speech_llm = GroqLLMWrapper.create_speech_llm(self.speech_prompt)
         ## ------------ 
 
         # Create specialized LLM instances (Local LLM)
-        
-        ## Load prompts
         ## ------------ 
-        self.system_prompt = self._load_prompt("system_prompt_lus.md")
-        self.speech_prompt = self._load_prompt("speech_prompt.md")
-        ## ------------ 
-        ## Create LLM instances (Local LLM)
-        ## ------------ 
-        self.thinking_llm = LocalLLMWrapper.create_thinking_llm(self.system_prompt)
-        self.speech_llm = LocalLLMWrapper.create_speech_llm(self.speech_prompt)
+        ###self.thinking_llm = LocalLLMWrapper.create_thinking_llm(self.system_prompt)
+        ###self.speech_llm = LocalLLMWrapper.create_speech_llm(self.speech_prompt)
         ## ------------ 
 
         '''
