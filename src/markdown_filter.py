@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from typing import Optional
-from src.llm.local_llm import LocalLLMWrapper
+from llm.local_llm import LocalLLMWrapper
 from llama_index.core.llms import ChatMessage
 
 class MarkdownFilter:
@@ -36,7 +36,11 @@ class MarkdownFilter:
 
     def process_folder(self):
         """Process all markdown files in the base folder structure"""
-        for input_path in self.base_folder.rglob("*.md"):
+        print(f"Scanning folder: {self.base_folder}")
+        files_found = list(self.base_folder.rglob("*.md"))
+        print(f"Found {len(files_found)} markdown files")
+        
+        for input_path in files_found:
             # Calculate relative path to maintain folder structure
             rel_path = input_path.relative_to(self.base_folder)
             output_path = self.output_folder / rel_path
@@ -45,20 +49,29 @@ class MarkdownFilter:
             self.process_file(input_path, output_path)
 
 def filter_markdown_folder(input_folder: str, output_folder: Optional[str] = None):
-    """Convenience function to filter an entire folder of markdown files
+    """Convenience function to filter an entire folder of markdown files"""
+    # Clean up the input path - remove quotes and normalize
+    input_folder = input_folder.strip('"').strip("'").strip("\\")
+    input_path = Path(input_folder).resolve()
     
-    Args:
-        input_folder: Path to the input folder containing markdown files
-        output_folder: Optional path to output folder. If not provided, will create
-                      a '{input_folder}-filtered' folder alongside the input folder
-    """
-    input_path = Path(input_folder)
+    # Verify input folder exists
+    if not input_path.exists():
+        print(f"Error: Input folder '{input_path}' does not exist")
+        print(f"Debug - Raw input: {input_folder}")
+        print(f"Debug - Resolved path: {input_path}")
+        print(f"Debug - Current working directory: {Path.cwd()}")
+        return
+    
+    print(f"Input path: {input_path} (exists: {input_path.exists()})")
     
     # If no output folder specified, create one alongside input folder
     if output_folder is None:
         output_path = input_path.parent / f"{input_path.name}-filtered"
     else:
+        output_folder = output_folder.strip('"').strip("'").strip("\\")
         output_path = Path(output_folder)
+    
+    print(f"Output path will be: {output_path}")
     
     filter = MarkdownFilter(str(input_path), str(output_path))
     filter.process_folder()

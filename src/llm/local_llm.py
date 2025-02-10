@@ -38,9 +38,27 @@ class LocalLLMWrapper:
                 messages = [system_message] + messages
             
             response = self.llm.chat(messages)
-            return response.message.content
+            # return response.message.content
+            return self._strip_thinking_tags(response.message.content)
         except Exception as e:
             raise Exception(f"Error in Local LLM call: {str(e)}")
+
+    def _strip_thinking_tags(self, content: str) -> str:
+        """Remove thinking tags and their content from the response."""
+        import re
+        
+        # Remove both <details>...</details> and <think>...</think> sections
+        patterns = [
+            r'<details.*?</details>\s*',  # Match <details> tags
+            r'<think>.*?</think>\s*'      # Match <think> tags
+        ]
+        
+        cleaned_content = content
+        for pattern in patterns:
+            cleaned_content = re.sub(pattern, '', cleaned_content, flags=re.DOTALL)
+        
+        # Remove any leading/trailing whitespace
+        return cleaned_content.strip()
 
     @classmethod
     def create_thinking_llm(cls, system_prompt: str) -> 'LocalLLMWrapper':
